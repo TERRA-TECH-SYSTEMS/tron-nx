@@ -1,0 +1,303 @@
+name: Build TRON.NX
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'TRON.NX version (e.g., 40.0.0-tron.1)'
+        required: true
+        default: '40.0.0-tron.1'
+      platform:
+        description: 'Platform to build'
+        required: true
+        type: choice
+        options:
+          - macos-arm64
+          - macos-x64
+          - linux-x64
+          - windows-x64
+          - all
+        default: 'macos-arm64'
+      create_release:
+        description: 'Create/update GitHub release'
+        type: boolean
+        default: true
+
+env:
+  TRON_VERSION: ${{ github.event.inputs.version }}
+
+jobs:
+  build-macos-arm64:
+    if: ${{ github.event.inputs.platform == 'macos-arm64' || github.event.inputs.platform == 'all' }}
+    runs-on: macos-14
+    timeout-minutes: 360
+    steps:
+      - name: Checkout TRON.NX
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install depot_tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$PWD/depot_tools" >> $GITHUB_PATH
+
+      - name: Configure gclient
+        run: |
+          mkdir -p electron-src
+          cd electron-src
+          gclient config --name "src/electron" --unmanaged https://github.com/TERRA-TECH-SYSTEMS/tron-nx.git
+
+      - name: Sync source (this takes a while)
+        run: |
+          cd electron-src
+          gclient sync --with_branch_heads --with_tags -v
+
+      - name: Apply TRON.NX patches
+        run: |
+          cd electron-src/src/electron
+          # Future: Apply TerraTech-specific patches here
+
+      - name: Build TRON.NX
+        run: |
+          cd electron-src/src
+          gn gen out/Release --args="import(\"//electron/build/args/release.gn\") target_cpu=\"arm64\""
+          ninja -C out/Release electron
+
+      - name: Create distribution
+        run: |
+          cd electron-src/src
+          ninja -C out/Release electron:electron_dist_zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tron-nx-darwin-arm64
+          path: electron-src/src/out/Release/dist.zip
+
+  build-macos-x64:
+    if: ${{ github.event.inputs.platform == 'macos-x64' || github.event.inputs.platform == 'all' }}
+    runs-on: macos-13
+    timeout-minutes: 360
+    steps:
+      - name: Checkout TRON.NX
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install depot_tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$PWD/depot_tools" >> $GITHUB_PATH
+
+      - name: Configure gclient
+        run: |
+          mkdir -p electron-src
+          cd electron-src
+          gclient config --name "src/electron" --unmanaged https://github.com/TERRA-TECH-SYSTEMS/tron-nx.git
+
+      - name: Sync source
+        run: |
+          cd electron-src
+          gclient sync --with_branch_heads --with_tags -v
+
+      - name: Build TRON.NX
+        run: |
+          cd electron-src/src
+          gn gen out/Release --args="import(\"//electron/build/args/release.gn\") target_cpu=\"x64\""
+          ninja -C out/Release electron
+
+      - name: Create distribution
+        run: |
+          cd electron-src/src
+          ninja -C out/Release electron:electron_dist_zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tron-nx-darwin-x64
+          path: electron-src/src/out/Release/dist.zip
+
+  build-linux-x64:
+    if: ${{ github.event.inputs.platform == 'linux-x64' || github.event.inputs.platform == 'all' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+    steps:
+      - name: Checkout TRON.NX
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential clang lld git python3 \
+            libx11-dev libxext-dev libxrandr-dev libxcomposite-dev \
+            libxdamage-dev libxfixes-dev libxcursor-dev libxi-dev \
+            libxtst-dev libglib2.0-dev libnss3-dev libatk1.0-dev \
+            libatk-bridge2.0-dev libcups2-dev libdrm-dev libgbm-dev \
+            libpango1.0-dev libasound2-dev libpulse-dev
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install depot_tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$PWD/depot_tools" >> $GITHUB_PATH
+
+      - name: Configure gclient
+        run: |
+          mkdir -p electron-src
+          cd electron-src
+          gclient config --name "src/electron" --unmanaged https://github.com/TERRA-TECH-SYSTEMS/tron-nx.git
+
+      - name: Sync source
+        run: |
+          cd electron-src
+          gclient sync --with_branch_heads --with_tags -v
+
+      - name: Build TRON.NX
+        run: |
+          cd electron-src/src
+          gn gen out/Release --args="import(\"//electron/build/args/release.gn\") target_cpu=\"x64\" is_clang=true"
+          ninja -C out/Release electron
+
+      - name: Create distribution
+        run: |
+          cd electron-src/src
+          ninja -C out/Release electron:electron_dist_zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tron-nx-linux-x64
+          path: electron-src/src/out/Release/dist.zip
+
+  build-windows-x64:
+    if: ${{ github.event.inputs.platform == 'windows-x64' || github.event.inputs.platform == 'all' }}
+    runs-on: windows-2022
+    timeout-minutes: 360
+    steps:
+      - name: Checkout TRON.NX
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install depot_tools
+        shell: pwsh
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$PWD\depot_tools" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Configure gclient
+        shell: pwsh
+        run: |
+          mkdir electron-src
+          cd electron-src
+          gclient config --name "src/electron" --unmanaged https://github.com/TERRA-TECH-SYSTEMS/tron-nx.git
+
+      - name: Sync source
+        shell: pwsh
+        run: |
+          cd electron-src
+          gclient sync --with_branch_heads --with_tags -v
+
+      - name: Build TRON.NX
+        shell: pwsh
+        run: |
+          cd electron-src/src
+          gn gen out/Release --args='import("//electron/build/args/release.gn") target_cpu="x64"'
+          ninja -C out/Release electron
+
+      - name: Create distribution
+        shell: pwsh
+        run: |
+          cd electron-src/src
+          ninja -C out/Release electron:electron_dist_zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tron-nx-win32-x64
+          path: electron-src/src/out/Release/dist.zip
+
+  create-release:
+    needs: [build-macos-arm64, build-macos-x64, build-linux-x64, build-windows-x64]
+    if: ${{ always() && github.event.inputs.create_release == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Rename artifacts
+        run: |
+          mkdir -p release
+          for dir in artifacts/*/; do
+            name=$(basename "$dir")
+            if [ -f "$dir/dist.zip" ]; then
+              mv "$dir/dist.zip" "release/tron-nx-${{ env.TRON_VERSION }}-${name#tron-nx-}.zip"
+            fi
+          done
+          ls -la release/
+
+      - name: Update Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.TRON_VERSION }}
+          name: TRON.NX v${{ env.TRON_VERSION }}
+          files: release/*
+          body: |
+            ## TRON.NX v${{ env.TRON_VERSION }}
+
+            Pre-built binaries for TRON.NX - TerraTech Systems' enterprise Electron fork.
+
+            ### Downloads
+            - **macOS ARM64**: tron-nx-${{ env.TRON_VERSION }}-darwin-arm64.zip
+            - **macOS x64**: tron-nx-${{ env.TRON_VERSION }}-darwin-x64.zip
+            - **Linux x64**: tron-nx-${{ env.TRON_VERSION }}-linux-x64.zip
+            - **Windows x64**: tron-nx-${{ env.TRON_VERSION }}-win32-x64.zip
+
+            ---
+            **TerraTech Systems** — Technology built on Ancestral wisdom, Augmented capability, Authentic solutions.
