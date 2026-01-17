@@ -1,102 +1,159 @@
-[![Electron Logo](https://electronjs.org/images/electron-logo.svg)](https://electronjs.org)
+# TRON.NX
 
-[![GitHub Actions Build Status](https://github.com/electron/electron/actions/workflows/build.yml/badge.svg)](https://github.com/electron/electron/actions/workflows/build.yml)
-[![Electron Discord Invite](https://img.shields.io/discord/745037351163527189?color=%237289DA&label=chat&logo=discord&logoColor=white)](https://discord.gg/electronjs)
+[![TRON.NX](https://img.shields.io/badge/TRON.NX-Framework-blue)](https://github.com/TERRA-TECH-SYSTEMS/tron-nx)
+[![Based on Electron](https://img.shields.io/badge/Based%20on-Electron-47848F)](https://electronjs.org)
+[![TerraTech Systems](https://img.shields.io/badge/TerraTech-Systems-orange)](https://github.com/TERRA-TECH-SYSTEMS)
 
-:memo: Available Translations: 🇨🇳 🇧🇷 🇪🇸 🇯🇵 🇷🇺 🇫🇷 🇺🇸 🇩🇪.
-View these docs in other languages on our [Crowdin](https://crowdin.com/project/electron) project.
+**TRON.NX** — **T**uned **R**untime **O**ptimized **N**ative e**X**tension
 
-The Electron framework lets you write cross-platform desktop applications
-using JavaScript, HTML and CSS. It is based on [Node.js](https://nodejs.org/) and
-[Chromium](https://www.chromium.org) and is used by the
-[Visual Studio Code](https://github.com/Microsoft/vscode/) and many other [apps](https://electronjs.org/apps).
+TerraTech Systems' cross-platform desktop application framework—a performance-optimized fork of [Electron](https://github.com/electron/electron) with enterprise features and Apple Silicon optimization.
 
-Follow [@electronjs](https://twitter.com/electronjs) on Twitter for important
-announcements.
+---
 
-This project adheres to the Contributor Covenant
-[code of conduct](https://github.com/electron/electron/tree/main/CODE_OF_CONDUCT.md).
-By participating, you are expected to uphold this code. Please report unacceptable
-behavior to [coc@electronjs.org](mailto:coc@electronjs.org).
+## Why TRON.NX?
+
+| Feature | Electron | TRON.NX |
+|---------|----------|---------|
+| Apple Silicon | ✓ | ✓ Optimized |
+| Enterprise Signing | Manual | Integrated |
+| TerraTech Integration | - | Native |
+| Stability Patches | Upstream | Applied |
+| Long-term Support | Community | TerraTech |
+
+TRON.NX maintains full compatibility with Electron while adding:
+- **Performance tuning** for Apple Silicon M-series processors
+- **Stability patches** (e.g., fontations rendering fixes)
+- **Enterprise code signing** integration
+- **TerraTech ecosystem** compatibility
+
+---
 
 ## Installation
 
-To install prebuilt Electron binaries, use [`npm`](https://docs.npmjs.com/).
-The preferred method is to install Electron as a development dependency in your
-app:
+### Using npm
 
 ```sh
-npm install electron --save-dev
+# Install TRON.NX as a development dependency
+npm install @terratech/tron-nx --save-dev
 ```
 
-For more installation options and troubleshooting tips, see
-[installation](docs/tutorial/installation.md). For info on how to manage Electron versions in your apps, see
-[Electron versioning](docs/tutorial/electron-versioning.md).
+### Using pre-built binaries
 
-## Platform support
+Download from [Releases](https://github.com/TERRA-TECH-SYSTEMS/tron-nx/releases).
 
-Each Electron release provides binaries for macOS, Windows, and Linux.
+---
 
-* macOS (Monterey and up): Electron provides 64-bit Intel and Apple Silicon / ARM binaries for macOS.
-* Windows (Windows 10 and up): Electron provides `ia32` (`x86`), `x64` (`amd64`), and `arm64` binaries for Windows. Windows on ARM support was added in Electron 5.0.8. Support for Windows 7, 8 and 8.1 was [removed in Electron 23, in line with Chromium's Windows deprecation policy](https://www.electronjs.org/blog/windows-7-to-8-1-deprecation-notice).
-* Linux: The prebuilt binaries of Electron are built on Ubuntu 22.04. They have also been verified to work on:
-  * Ubuntu 18.04 and newer
-  * Fedora 32 and newer
-  * Debian 10 and newer
+## Platform Support
 
-## Electron Fiddle
+| Platform | Architecture | Status |
+|----------|--------------|--------|
+| macOS | ARM64 (Apple Silicon) | ✓ Primary |
+| macOS | x64 (Intel) | ✓ Supported |
+| Windows | x64 | ✓ Supported |
+| Linux | x64 | ✓ Supported |
 
-Use [`Electron Fiddle`](https://github.com/electron/fiddle)
-to build, run, and package small Electron experiments, to see code examples for all of Electron's APIs, and
-to try out different versions of Electron. It's designed to make the start of your journey with
-Electron easier.
+---
 
-## Resources for learning Electron
+## Version Scheme
 
-* [electronjs.org/docs](https://electronjs.org/docs) - All of Electron's documentation
-* [electron/fiddle](https://github.com/electron/fiddle) - A tool to build, run, and package small Electron experiments
-* [electronjs.org/community#boilerplates](https://electronjs.org/community#boilerplates) - Sample starter apps created by the community
+TRON.NX follows Electron versioning with a TerraTech suffix:
 
-## Programmatic usage
-
-Most people use Electron from the command line, but if you require `electron` inside
-your **Node app** (not your Electron app) it will return the file path to the
-binary. Use this to spawn Electron from Node scripts:
-
-```javascript
-const electron = require('electron')
-const proc = require('node:child_process')
-
-// will print something similar to /Users/maf/.../Electron
-console.log(electron)
-
-// spawn Electron
-const child = proc.spawn(electron)
+```
+{electron-version}-tron.{patch}
 ```
 
-### Mirrors
+Examples:
+- `40.0.0-tron.1` — First TRON.NX release based on Electron 40.0.0
+- `40.0.0-tron.2` — Second patch with TerraTech-specific fixes
 
-* [China](https://npmmirror.com/mirrors/electron/)
+---
 
-See the [Advanced Installation Instructions](https://www.electronjs.org/docs/latest/tutorial/installation#mirror) to learn how to use a custom mirror.
+## Applications Built on TRON.NX
 
-## Documentation translations
+| Application | Description | Status |
+|-------------|-------------|--------|
+| [CodeEX](https://github.com/TERRA-TECH-SYSTEMS/codex) | AI-integrated IDE | Active |
+| Terra-Tron | Desktop app runtime | Active |
+| Charta Desktop | Collaboration client | Planned |
+| GIXSIS Terminal | AI assistant interface | Planned |
+| VisionVI Desktop | Video communication | Active |
 
-We crowdsource translations for our documentation via [Crowdin](https://crowdin.com/project/electron).
-We currently accept translations for Chinese (Simplified), French, German, Japanese, Portuguese,
-Russian, and Spanish.
+---
+
+## Building from Source
+
+### Prerequisites
+
+- macOS 12.0+ or equivalent
+- Xcode Command Line Tools
+- Python 3.11+
+- Node.js 20.x
+- ~50GB disk space
+
+### Quick Start
+
+```sh
+# Clone the repository
+git clone https://github.com/TERRA-TECH-SYSTEMS/tron-nx.git
+cd tron-nx
+
+# Bootstrap the build environment
+./script/bootstrap.py
+
+# Build
+./script/build.py -c Release
+```
+
+For detailed instructions, see [Build Instructions](docs/development/build-instructions.md).
+
+---
 
 ## Contributing
 
-If you are interested in reporting/fixing issues and contributing directly to the code base, please see [CONTRIBUTING.md](CONTRIBUTING.md) for more information on what we're looking for and how to get started.
+TRON.NX is maintained by TerraTech Systems. We welcome contributions that align with our goals:
 
-## Community
+1. Performance improvements
+2. Stability patches
+3. Enterprise feature enhancements
+4. Documentation improvements
 
-Info on reporting bugs, getting help, finding third-party tools and sample apps,
-and more can be found on the [Community page](https://www.electronjs.org/community).
+Please read our [Contributing Guide](CONTRIBUTING.md) before submitting PRs.
+
+---
+
+## Upstream Sync
+
+TRON.NX regularly syncs with upstream Electron to incorporate:
+- Security patches
+- Chromium updates
+- Node.js updates
+- Bug fixes
+
+Current base: **Electron v40.0.0** (Chromium 145, Node.js 22)
+
+---
 
 ## License
 
-[MIT](https://github.com/electron/electron/blob/main/LICENSE)
+TRON.NX is based on [Electron](https://github.com/electron/electron), licensed under the [MIT License](LICENSE).
+
+TerraTech-specific additions are also MIT licensed.
 
 When using Electron logos, make sure to follow [OpenJS Foundation Trademark Policy](https://trademark-policy.openjsf.org/).
+
+---
+
+## Organization
+
+**TerraTech Systems** delivers intelligent enterprise platforms that transform how organizations collaborate, communicate, and create.
+
+Technology built on the **Triple A's**:
+- **Ancestral** wisdom
+- **Augmented** capability
+- **Authentic** solutions
+
+---
+
+[![GitHub](https://img.shields.io/badge/GitHub-TERRA--TECH--SYSTEMS-181717?logo=github)](https://github.com/TERRA-TECH-SYSTEMS)
+
+*TRON.NX — Powering the next generation of desktop applications*
