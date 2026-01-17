@@ -1,0 +1,257 @@
+name: TRON.NX Distribution
+
+# This workflow downloads official Electron releases and rebrands them as TRON.NX
+# Building Electron from source requires ~50GB disk space which exceeds GitHub runner limits
+# This approach is similar to how VSCodium rebrands VS Code
+
+on:
+  workflow_dispatch:
+    inputs:
+      electron_version:
+        description: 'Electron version to rebrand (e.g., 34.0.0)'
+        required: true
+        default: '34.0.0'
+      tron_version:
+        description: 'TRON.NX version suffix (e.g., tron.1)'
+        required: true
+        default: 'tron.1'
+
+env:
+  ELECTRON_VERSION: ${{ github.event.inputs.electron_version }}
+  TRON_VERSION: ${{ github.event.inputs.electron_version }}-${{ github.event.inputs.tron_version }}
+
+jobs:
+  rebrand-darwin-arm64:
+    runs-on: macos-14
+    steps:
+      - name: Checkout TRON.NX
+        uses: actions/checkout@v4
+
+      - name: Download Electron
+        run: |
+          curl -L -o electron.zip \
+            "https://github.com/electron/electron/releases/download/v${{ env.ELECTRON_VERSION }}/electron-v${{ env.ELECTRON_VERSION }}-darwin-arm64.zip"
+          mkdir -p electron-dist
+          unzip electron.zip -d electron-dist
+
+      - name: Apply TRON.NX branding
+        run: |
+          cd electron-dist
+
+          # Rename app bundle
+          mv "Electron.app" "TRON.NX.app"
+
+          # Update Info.plist
+          PLIST="TRON.NX.app/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleName 'TRON.NX'" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName 'TRON.NX'" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier 'ai.terratech.tron'" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleExecutable 'TRON.NX'" "$PLIST" || true
+
+          # Rename executable
+          if [ -f "TRON.NX.app/Contents/MacOS/Electron" ]; then
+            mv "TRON.NX.app/Contents/MacOS/Electron" "TRON.NX.app/Contents/MacOS/TRON.NX"
+          fi
+
+          # Copy branding icons if available
+          if [ -f "../branding/icons/tron-nx.icns" ]; then
+            cp "../branding/icons/tron-nx.icns" "TRON.NX.app/Contents/Resources/electron.icns"
+          fi
+
+      - name: Create distribution zip
+        run: |
+          cd electron-dist
+          zip -r ../tron-nx-v${{ env.TRON_VERSION }}-darwin-arm64.zip TRON.NX.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tron-nx-darwin-arm64
+          path: tron-nx-v${{ env.TRON_VERSION }}-darwin-arm64.zip
+
+  rebrand-darwin-x64:
+    runs-on: macos-13
+    steps:
+      - name: Checkout TRON.NX
+        uses: actions/checkout@v4
+
+      - name: Download Electron
+        run: |
+          curl -L -o electron.zip \
+            "https://github.com/electron/electron/releases/download/v${{ env.ELECTRON_VERSION }}/electron-v${{ env.ELECTRON_VERSION }}-darwin-x64.zip"
+          mkdir -p electron-dist
+          unzip electron.zip -d electron-dist
+
+      - name: Apply TRON.NX branding
+        run: |
+          cd electron-dist
+          mv "Electron.app" "TRON.NX.app"
+
+          PLIST="TRON.NX.app/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleName 'TRON.NX'" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName 'TRON.NX'" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier 'ai.terratech.tron'" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleExecutable 'TRON.NX'" "$PLIST" || true
+
+          if [ -f "TRON.NX.app/Contents/MacOS/Electron" ]; then
+            mv "TRON.NX.app/Contents/MacOS/Electron" "TRON.NX.app/Contents/MacOS/TRON.NX"
+          fi
+
+          if [ -f "../branding/icons/tron-nx.icns" ]; then
+            cp "../branding/icons/tron-nx.icns" "TRON.NX.app/Contents/Resources/electron.icns"
+          fi
+
+      - name: Create distribution zip
+        run: |
+          cd electron-dist
+          zip -r ../tron-nx-v${{ env.TRON_VERSION }}-darwin-x64.zip TRON.NX.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tron-nx-darwin-x64
+          path: tron-nx-v${{ env.TRON_VERSION }}-darwin-x64.zip
+
+  rebrand-linux-x64:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout TRON.NX
+        uses: actions/checkout@v4
+
+      - name: Download Electron
+        run: |
+          curl -L -o electron.zip \
+            "https://github.com/electron/electron/releases/download/v${{ env.ELECTRON_VERSION }}/electron-v${{ env.ELECTRON_VERSION }}-linux-x64.zip"
+          mkdir -p electron-dist
+          unzip electron.zip -d electron-dist
+
+      - name: Apply TRON.NX branding
+        run: |
+          cd electron-dist
+
+          # Rename executable
+          mv electron tron-nx
+
+          # Update version file
+          echo "${{ env.TRON_VERSION }}" > version
+
+          # Copy branding icons
+          if [ -f "../branding/icons/tron-nx-icon-256.png" ]; then
+            cp "../branding/icons/tron-nx-icon-256.png" resources/tron-nx.png
+          fi
+
+          # Create .desktop file template
+          cat > tron-nx.desktop << 'EOF'
+          [Desktop Entry]
+          Name=TRON.NX
+          Comment=TerraTech Systems Desktop Runtime
+          Exec=/opt/tron-nx/tron-nx %U
+          Terminal=false
+          Type=Application
+          Icon=tron-nx
+          StartupWMClass=TRON.NX
+          Categories=Development;
+          EOF
+
+      - name: Create distribution zip
+        run: |
+          cd electron-dist
+          zip -r ../tron-nx-v${{ env.TRON_VERSION }}-linux-x64.zip .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tron-nx-linux-x64
+          path: tron-nx-v${{ env.TRON_VERSION }}-linux-x64.zip
+
+  rebrand-windows-x64:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout TRON.NX
+        uses: actions/checkout@v4
+
+      - name: Download Electron
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/electron/electron/releases/download/v${{ env.ELECTRON_VERSION }}/electron-v${{ env.ELECTRON_VERSION }}-win32-x64.zip" -OutFile electron.zip
+          New-Item -ItemType Directory -Force -Path electron-dist
+          Expand-Archive -Path electron.zip -DestinationPath electron-dist
+
+      - name: Apply TRON.NX branding
+        shell: pwsh
+        run: |
+          cd electron-dist
+
+          # Rename executable
+          Rename-Item -Path "electron.exe" -NewName "tron-nx.exe"
+
+          # Update version
+          Set-Content -Path "version" -Value "${{ env.TRON_VERSION }}"
+
+      - name: Create distribution zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path electron-dist\* -DestinationPath "tron-nx-v${{ env.TRON_VERSION }}-win32-x64.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tron-nx-win32-x64
+          path: tron-nx-v${{ env.TRON_VERSION }}-win32-x64.zip
+
+  create-release:
+    needs: [rebrand-darwin-arm64, rebrand-darwin-x64, rebrand-linux-x64, rebrand-windows-x64]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          find artifacts -name "*.zip" -exec mv {} release/ \;
+          ls -la release/
+
+          # Generate checksums
+          cd release
+          sha256sum *.zip > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.TRON_VERSION }}
+          name: TRON.NX v${{ env.TRON_VERSION }}
+          files: release/*
+          body: |
+            ## TRON.NX v${{ env.TRON_VERSION }}
+
+            **TRON.NX** (Tuned Runtime Optimized Native eXtension) - TerraTech Systems' enterprise Electron distribution.
+
+            Based on Electron v${{ env.ELECTRON_VERSION }} with TerraTech branding applied.
+
+            ### Downloads
+
+            | Platform | File |
+            |----------|------|
+            | macOS ARM64 (Apple Silicon) | `tron-nx-v${{ env.TRON_VERSION }}-darwin-arm64.zip` |
+            | macOS x64 (Intel) | `tron-nx-v${{ env.TRON_VERSION }}-darwin-x64.zip` |
+            | Linux x64 | `tron-nx-v${{ env.TRON_VERSION }}-linux-x64.zip` |
+            | Windows x64 | `tron-nx-v${{ env.TRON_VERSION }}-win32-x64.zip` |
+
+            ### Verification
+
+            Verify downloads with SHA256SUMS.txt:
+            ```bash
+            sha256sum -c SHA256SUMS.txt
+            ```
+
+            ---
+
+            **TerraTech Systems** — Sheridan, Wyoming
+
+            *Technology built on Ancestral wisdom, Augmented capability, Authentic solutions.*
