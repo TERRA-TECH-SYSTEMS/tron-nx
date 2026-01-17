@@ -70,7 +70,7 @@ jobs:
           path: tron-nx-v${{ env.TRON_VERSION }}-darwin-arm64.zip
 
   rebrand-darwin-x64:
-    runs-on: macos-13-large
+    runs-on: macos-14
     steps:
       - name: Checkout TRON.NX
         uses: actions/checkout@v4
