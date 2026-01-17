@@ -70,7 +70,7 @@ jobs:
           path: tron-nx-v${{ env.TRON_VERSION }}-darwin-arm64.zip
 
   rebrand-darwin-x64:
-    runs-on: macos-14
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout TRON.NX
         uses: actions/checkout@v4
@@ -87,16 +87,17 @@ jobs:
           cd electron-dist
           mv "Electron.app" "TRON.NX.app"
 
+          # Update Info.plist using sed (cross-platform)
           PLIST="TRON.NX.app/Contents/Info.plist"
-          /usr/libexec/PlistBuddy -c "Set :CFBundleName 'TRON.NX'" "$PLIST"
-          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName 'TRON.NX'" "$PLIST"
-          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier 'ai.terratech.tron'" "$PLIST"
-          /usr/libexec/PlistBuddy -c "Set :CFBundleExecutable 'TRON.NX'" "$PLIST" || true
+          sed -i 's/<string>Electron<\/string>/<string>TRON.NX<\/string>/g' "$PLIST"
+          sed -i 's/com\.github\.Electron/ai.terratech.tron/g' "$PLIST"
 
+          # Rename executable
           if [ -f "TRON.NX.app/Contents/MacOS/Electron" ]; then
             mv "TRON.NX.app/Contents/MacOS/Electron" "TRON.NX.app/Contents/MacOS/TRON.NX"
           fi
 
+          # Copy branding icons if available
           if [ -f "../branding/icons/tron-nx.icns" ]; then
             cp "../branding/icons/tron-nx.icns" "TRON.NX.app/Contents/Resources/electron.icns"
           fi
